@@ -1,0 +1,38 @@
+name: セール期間を更新
+
+on:
+  schedule:
+    # 毎日 6:23（日本時間）に楽天の公式ページで開催日程を確認する（4アカウントの config.json に書く）
+    - cron: '23 21 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: 楽天のページから開催期間を読み取る
+        run: node src/update-campaigns.js
+
+      - name: 変更があれば保存する
+        run: |
+          if git diff --quiet accounts/; then exit 0; fi
+          git config user.name "threads-bots"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add accounts/*/config.json
+          git commit -m "セール期間を更新"
+          for i in 1 2 3; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep $((i * 5))
+          done
+          exit 1

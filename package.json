@@ -1,0 +1,17 @@
+{
+  "name": "sale-neko-bot",
+  "private": true,
+  "type": "module",
+  "description": "楽天の日用品・食品のセール情報を Threads に自動投稿する bot（セールねこ）",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "post": "node src/post.js",
+    "dry-run": "DRY_RUN=1 node src/post.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0"
+  }
+}

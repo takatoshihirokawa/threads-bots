@@ -1,0 +1,44 @@
+name: Threads のトークンを更新
+
+on:
+  schedule:
+    # 毎月1日と15日の 10:17（日本時間）。トークンの期限は60日なので余裕を持って更新する
+    - cron: '17 1 1,15 * *'
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        account: [neko, desk, gadget, kaden]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: トークンを更新して Secret に保存し直す（${{ matrix.account }}）
+        env:
+          THREADS_ACCESS_TOKEN: ${{ secrets[format('THREADS_ACCESS_TOKEN_{0}', matrix.account)] }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          ACCOUNT: ${{ matrix.account }}
+        run: |
+          NAME="THREADS_ACCESS_TOKEN_$(echo "$ACCOUNT" | tr '[:lower:]' '[:upper:]')"
+          if [ -z "$THREADS_ACCESS_TOKEN" ]; then
+            echo "::error::Secret $NAME がありません"; exit 1
+          fi
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::Secret GH_PAT がないため、新しいトークンを保存できません（README の手順を確認してください）"; exit 1
+          fi
+          # 先に GH_PAT で Secret を書き込めるか確かめる（トークンを更新してから保存に失敗すると古いトークンが無効になるおそれがある）
+          gh api "repos/$GITHUB_REPOSITORY/actions/secrets/public-key" > /dev/null \
+            || { echo "::error::GH_PAT で Secrets にアクセスできません（権限か期限を確認してください）"; exit 1; }
+          NEW_TOKEN="$(node src/refresh-token.js)"
+          echo "::add-mask::$NEW_TOKEN"
+          printf '%s' "$NEW_TOKEN" | gh secret set "$NAME" --repo "$GITHUB_REPOSITORY"
+          echo "$NAME を更新しました"

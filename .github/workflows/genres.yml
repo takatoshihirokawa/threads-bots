@@ -1,0 +1,31 @@
+name: ジャンル一覧を表示
+
+on:
+  workflow_dispatch:
+    inputs:
+      account:
+        description: 'アカウント（ジャンルを省略したときに、このアカウントの config.json のジャンルを表示する）'
+        type: choice
+        options: [neko, desk, gadget, kaden]
+      genre_ids:
+        description: 'ジャンルID（空白区切り。空なら config.json のジャンル）'
+        required: false
+        default: ''
+
+jobs:
+  genres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - env:
+          ACCOUNT: ${{ inputs.account }}
+          RAKUTEN_APP_ID: ${{ secrets.RAKUTEN_APP_ID }}
+          RAKUTEN_ACCESS_KEY: ${{ secrets.RAKUTEN_ACCESS_KEY }}
+          GENRE_IDS: ${{ inputs.genre_ids }}
+        run: node src/genres.js $GENRE_IDS

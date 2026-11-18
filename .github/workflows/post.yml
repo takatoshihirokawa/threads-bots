@@ -1,0 +1,89 @@
+name: Threads に投稿
+
+# 4アカウント共通。どのアカウントで投稿するかは account で指定する（accounts/ の中のフォルダ名）。
+# 外部タイマー（cron-job.org）が決まった時刻に account と trigger=timer を付けて起動する。
+# 投稿時間はアカウントごとの accounts/<名前>/config.json の posting.slots。
+on:
+  workflow_dispatch:
+    inputs:
+      account:
+        description: 'アカウント'
+        type: choice
+        options: [neko, desk, gadget, kaden]
+        required: true
+      dry_run:
+        description: '投稿せずに投稿文だけ確認する'
+        type: boolean
+        default: true
+      trigger:
+        description: '外部タイマーからの起動は timer（手動で試すときは空のまま）'
+        required: false
+        default: ''
+      preset:
+        description: '試し用：presets/ の設定で投稿文だけ作る（desk / audio / kaden）。投稿しないテストのときだけ'
+        required: false
+        default: ''
+      group:
+        description: '試し用：このグループから選ぶ（例：日用品）。空なら通常どおり'
+        required: false
+        default: ''
+      template:
+        description: '試し用：投稿の型を指定する（B / C-calendar / C-top / D）。空なら自動で選ぶ'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+# アカウントごとに1つずつ順番に動かす（別のアカウントどうしは同時に動いてよい）
+concurrency:
+  group: post-${{ inputs.account }}
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: 投稿する
+        env:
+          ACCOUNT: ${{ inputs.account }}
+          RAKUTEN_APP_ID: ${{ secrets.RAKUTEN_APP_ID }}
+          RAKUTEN_ACCESS_KEY: ${{ secrets.RAKUTEN_ACCESS_KEY }}
+          RAKUTEN_AFFILIATE_ID: ${{ secrets.RAKUTEN_AFFILIATE_ID }}
+          # Threads のトークンはアカウントごと（THREADS_ACCESS_TOKEN_NEKO など）
+          THREADS_ACCESS_TOKEN: ${{ secrets[format('THREADS_ACCESS_TOKEN_{0}', inputs.account)] }}
+          # Claude の API キーは共通の1つ（アカウント別のキーがあればそちらを使う）
+          ANTHROPIC_API_KEY: ${{ secrets[format('ANTHROPIC_API_KEY_{0}', inputs.account)] || secrets.ANTHROPIC_API_KEY }}
+          TRIGGER: ${{ inputs.trigger }}
+          GROUP: ${{ inputs.group }}
+          PRESET: ${{ inputs.preset }}
+          TEMPLATE: ${{ inputs.template }}
+          DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
+        run: node src/post.js
+
+      - name: 投稿の記録を保存する
+        # 途中で失敗しても、公開できた親投稿の記録は残す（次回リプライを付け直すため）
+        if: always()
+        env:
+          ACCOUNT: ${{ inputs.account }}
+        run: |
+          FILE="accounts/$ACCOUNT/data/posted.json"
+          if git diff --quiet "$FILE"; then exit 0; fi
+          git config user.name "threads-bots ($ACCOUNT)"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$FILE"
+          git commit -m "投稿を記録（$ACCOUNT）"
+          # 別のアカウントが同時に保存することがあるので、ぶつかったら取り直して最大3回やり直す
+          for i in 1 2 3; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep $((i * 5))
+          done
+          exit 1

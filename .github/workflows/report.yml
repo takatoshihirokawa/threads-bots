@@ -1,0 +1,35 @@
+name: 型ごとの反応を集計
+
+# 投稿の型（A：セール速報／B：実体験レビュー／C：まとめ／D：質問）ごとに、いいね・返信・リポスト・引用の平均を表にする。
+# Threads の threads_manage_insights 権限が必要。結果は実行画面の「Summary」に表示される。
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: '直近何日の投稿を集計するか'
+        default: '14'
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        account: [neko, desk, gadget, kaden]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: 集計する（${{ matrix.account }}）
+        env:
+          ACCOUNT: ${{ matrix.account }}
+          THREADS_ACCESS_TOKEN: ${{ secrets[format('THREADS_ACCESS_TOKEN_{0}', matrix.account)] }}
+          DAYS: ${{ inputs.days }}
+        run: node src/report.js
