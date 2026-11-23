@@ -122,11 +122,14 @@ test('templatePost + buildParent: 3行以内・リンクなし・PRあり・タ�
   const post = templatePost(normalize(raw()), { groupLabel: '日用品', template: persona.template, now, random: () => 0 });
   assert.equal(post.parent.split('\n').length, 3);
   // 1行目：数字（ポイント倍率）、2行目：商品名＋価格
-  assert.match(post.parent.split('\n')[0], /ポイント5倍/);
-  assert.match(post.parent.split('\n')[1], /2,980円（送料無料）/);
+  // 1行目：場面から入る一言（empathy）、2行目：商品名＋価格＋ポイント倍率（2026-11-23 P01）
+  assert.doesNotMatch(post.parent.split('\n')[0], /\d/);
+  assert.match(post.parent.split('\n')[1], /2,980円・ポイント5倍/);
+  assert.equal(post.hookStyle, '場面');
   const sale = { name: 'お買い物マラソン 10月第1弾' };
   const withSale = templatePost(normalize(raw()), { groupLabel: '日用品', template: persona.template, now, random: () => 0, sale });
-  assert.equal(withSale.parent.split('\n')[0], 'お買い物マラソン 10月第1弾中、ポイント5倍のを見つけたにゃ');
+  assert.match(withSale.parent.split('\n')[1], /^お買い物マラソン 10月第1弾中、.*2,980円・ポイント5倍$/);
+  assert.doesNotMatch(withSale.parent.split('\n')[0], /お買い物マラソン/);
   const text = buildParent(post.parent, {});
   assert.ok(!text.includes('http'));
   assert.match(text, /\nPR$/);
@@ -552,8 +555,10 @@ test('isBoostEve / eveLimit：5と0のつく日の前日だけ、最後の1本�
 
 test('つかみの型：直近の問いかけ型が半分より少なければ問いかけ型、多ければ場面型（2026-11-09 P02・P03）', () => {
   assert.equal(hookStyleFor([]), '問いかけ');
-  assert.equal(hookStyleFor(['加湿器もう出した？', '朝の支度、バタバタしてない？', '夜ひんやり', '足元が寒い']), '場面');
-  assert.equal(hookStyleFor(['加湿器もう出した？', '夜ひんやり', '足元が寒い', '朝が寒い']), '問いかけ');
+  // 記録した型（hook_style）で数える。1行目の「？」では数えない（2026-11-23 P03）
+  assert.equal(hookStyleFor(['問いかけ', '問いかけ', '場面', '場面']), '場面');
+  assert.equal(hookStyleFor(['問いかけ', '場面', '場面', '場面']), '問いかけ');
+  assert.equal(hookStyleFor(['場面', '場面', undefined, null]), '問いかけ');
   const item = normalize(raw());
   const post = { parent: '洗剤の詰め替え6個セット見つけたにゃ\n重いしかさばるのに、玄関まで届く。\n2,980円で送料無料。', reply: 'まとめ買いにどうぞ' };
   assert.match(checkPost(post, item, { factsText: '6 2980', hookStyle: '問いかけ' }), /問いかけ型なのに/);
@@ -609,4 +614,11 @@ test('Media Not Found は最大2回作り直し、画像が付かなければ商
   } finally {
     globalThis.fetch = realFetch;
   }
+});
+
+test('場面型の1行目に「？」があれば不合格（2026-11-23 P03）', () => {
+  const item = normalize(raw());
+  const post = { parent: '洗剤の詰め替え、重くて持ち帰るのがつらくない？\n6個セットで2,980円\n玄関まで届くのは助かる', reply: 'まとめ買いにどうぞ' };
+  assert.match(checkPost(post, item, { factsText: '6 2980', hookStyle: '場面' }), /場面型なのに/);
+  assert.equal(checkPost(post, item, { factsText: '6 2980', hookStyle: '問いかけ' }), null);
 });

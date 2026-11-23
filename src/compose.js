@@ -42,15 +42,16 @@ const pickFrom = (list, random) => list[Math.floor(random() * list.length)];
 export function templatePost(item, { groupLabel, template, now = new Date(), random = Math.random, sale = null } = {}) {
   const end = parseJst(item.saleEnd);
   const empathy = pickFrom(template.empathy[groupLabel] || template.empathy_default, random);
-  const number = item.pointRate >= 2 ? `ポイント${item.pointRate}倍` : `${yen(item.price)}円`;
-  // 1行目：セール名＋数字を、カタログのような並べ方ではなく一言の形にする（persona.template.sale_hooks。{sale}・{number} を置きかえる）
-  const hooks = template.sale_hooks?.length ? template.sale_hooks : ['{sale}中、{number}のを見つけた'];
+  // 1行目は場面から入る一言（persona.template.empathy）。セール名と数字は2行目に入れる
+  // （セール名＋数字だけの1行目はカタログのように見えるため。2026-11-23 Muse の提案 P01）
   const saleLabel = sale ? sale.name : end && end > now ? `${formatEnd(end)}までのセール` : null;
-  const plain = template.number_hooks?.length ? template.number_hooks : ['{number}のを見つけた'];
-  const head = (saleLabel ? pickFrom(hooks, random) : pickFrom(plain, random)).replaceAll('{sale}', saleLabel).replaceAll('{number}', number);
+  const point = item.pointRate >= 2 ? `・ポイント${item.pointRate}倍` : '';
+  const second = `${saleLabel ? `${saleLabel}中、` : ''}${cleanName(item.name, 26)}が${yen(item.price)}円${point}`;
+  const third = item.postageIncluded ? '送料無料で玄関まで届くのはうれしいところ' : 'レビューの声もチェックしてみて';
   return {
-    parent: [head, `${cleanName(item.name, 30)}：${yen(item.price)}円${item.postageIncluded ? '（送料無料）' : ''}`, empathy].join('\n'),
+    parent: [empathy, second, third].join('\n'),
     reply: pickFrom(template.closing, random),
+    hookStyle: '場面',
   };
 }
 

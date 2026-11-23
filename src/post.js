@@ -330,12 +330,14 @@ async function postItem(env, { type, item, experience }) {
     try {
       // 直近の投稿のつかみ（1行目）を渡して、同じ出だしが続かないようにする
       const recentHooks = posted.slice(-8).map((p) => p.hook).filter(Boolean);
+      const recentStyles = posted.slice(-8).map((p) => p.hook_style).filter(Boolean);
       post = await writePost(item, {
         groupLabel: group.label,
         genreName: genre.name,
         now,
         persona: config.persona,
         recentHooks,
+        recentStyles,
         type,
         sale: named,
         experience,

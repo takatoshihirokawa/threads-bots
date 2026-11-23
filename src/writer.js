@@ -129,9 +129,13 @@ export const hookHead = (line) =>
 export const firstLine = (text) => lines(text)[0] || '';
 
 // つかみの型（A型）。直近のつかみのうち問いかけ型（「？」を含む）が半分より少なければ問いかけ型、そうでなければ場面型
-export function hookStyleFor(recentHooks = []) {
-  const questions = recentHooks.filter((h) => /[?？]/.test(h)).length;
-  return questions * 2 < recentHooks.length || recentHooks.length === 0 ? '問いかけ' : '場面';
+// 直近の投稿で記録した「つかみの型」（posted.json の hook_style）を数えて交互にする。
+// 以前は1行目の「？」の有無で数えていたため、場面型にも「？」が付くと問いかけ型が多いと数えられ、
+// 場面型に偏った（2026-11-23 Muse の提案 P03：問いかけ32%・場面68%）。
+export function hookStyleFor(recentStyles = []) {
+  const styles = recentStyles.filter((s) => s === '問いかけ' || s === '場面');
+  const questions = styles.filter((s) => s === '問いかけ').length;
+  return questions * 2 < styles.length || styles.length === 0 ? '問いかけ' : '場面';
 }
 
 // AIの文を親投稿とリプライに分ける。形が崩れていれば null
@@ -175,6 +179,7 @@ export function checkPost(
   if (type === 'A' && saleName && !firstLine(parent).includes(saleKeyword(saleName))) return `1行目にセール名（${saleKeyword(saleName)}）がない`;
   // 問いかけ型のつかみは「？」で終える（効果を比べられるように、型どおりに書かせる）
   if (type === 'A' && hookStyle === '問いかけ' && !/[?？]/.test(firstLine(parent))) return '問いかけ型なのに1行目に「？」がない';
+  if (type === 'A' && hookStyle === '場面' && /[?？]/.test(firstLine(parent))) return '場面型なのに1行目に「？」がある（場面型は問いかけにしない）';
   // 「安い」「お得」のような抽象的な言葉だけで終わらせない
   const last = lines(parent).at(-1) || '';
   if (/安い|お得/.test(last) && !/\d/.test(last)) return '最後の行が「安い」「お得」などの抽象的な言葉で終わっている';
@@ -198,7 +203,7 @@ export function checkPost(
 
 export async function writePost(item, ctx, { client = new Anthropic() } = {}) {
   const persona = ctx.persona;
-  const hookStyle = (ctx.type || 'A') === 'A' ? hookStyleFor(ctx.recentHooks) : null;
+  const hookStyle = (ctx.type || 'A') === 'A' ? hookStyleFor(ctx.recentStyles || []) : null;
   const input = JSON.stringify(facts(item, { ...ctx, hookStyle }), null, 2);
   const messages = [{ role: 'user', content: `次の商品の投稿文を書いてください。\n\n${input}` }];
   // ルール違反のときは、理由を伝えて2回まで書き直してもらう
