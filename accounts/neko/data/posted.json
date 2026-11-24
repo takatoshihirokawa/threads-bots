@@ -4924,5 +4924,26 @@
     "replyText": "メール便で届くから受け取りもラクだにゃ\n【PR】商品ページはこちら👇",
     "replyPending": false,
     "replyId": "17940971943125802"
+  },
+  {
+    "itemCode": "saladcosmo:10000659",
+    "genre": "お菓子",
+    "price": 300,
+    "postedAt": "2026-11-24T09:12:05.285Z",
+    "textSource": "AI",
+    "hook": "明日は5と0のつく日、お茶のお供を探す夕方だにゃ…",
+    "hook_style": "場面",
+    "template_type": "A",
+    "has_price": true,
+    "has_discount_rate": false,
+    "number_in_head": true,
+    "sale_name": "5と0のつく日",
+    "has_media": true,
+    "threadsId": "18140319526634157",
+    "permalink": "https://www.threads.com/@sale_neko/post/DgHmuGAFfyb",
+    "url": "https://hb.afl.rakuten.co.jp/hgc/g00pu1go.hjiao833.g00pu1go.hjiaqa1e/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Fsaladcosmo%2Fkuro_okoge%2F&m=http%3A%2F%2Fm.rakuten.co.jp%2Fsaladcosmo%2Fi%2F10000659%2F&rafcid=wsc_i_is_b3849184-7557-44c6-b39d-b125169c4106",
+    "replyText": "黒にんにく入りの味が気になるにゃ\n【PR】商品ページはこちら👇",
+    "replyPending": false,
+    "replyId": "18121905932060187"
   }
 ]
