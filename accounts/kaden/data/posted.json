@@ -4912,5 +4912,26 @@
     "replyText": "パンくずトレーでお手入れできるよ\n【PR】商品ページはこちら👇",
     "replyPending": false,
     "replyId": "18120018785278517"
+  },
+  {
+    "itemCode": "myhomeshop:10000352",
+    "genre": "生活家電",
+    "price": 2980,
+    "postedAt": "2026-11-24T12:22:38.818Z",
+    "textSource": "AI",
+    "hook": "朝のアイロン台、5と0のつく日は明日だけど出すの面倒じゃないにゃ？",
+    "hook_style": "問いかけ",
+    "template_type": "A",
+    "has_price": true,
+    "has_discount_rate": false,
+    "number_in_head": true,
+    "sale_name": "5と0のつく日",
+    "has_media": true,
+    "threadsId": "18399341704167866",
+    "permalink": "https://www.threads.com/@sale_kaden_neko/post/DgH8hj1lgQX",
+    "url": "https://hb.afl.rakuten.co.jp/hgc/g00tz25o.hjiaocb5.g00tz25o.hjiaq382/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Fmyhomeshop%2Fzh-iron%2F&rafcid=wsc_i_ra_b3849184-7557-44c6-b39d-b125169c4106",
+    "replyText": "折り畳み式でしまいやすいのも気になる😊\n【PR】商品ページはこちら👇",
+    "replyPending": false,
+    "replyId": "18187545388421413"
   }
 ]
