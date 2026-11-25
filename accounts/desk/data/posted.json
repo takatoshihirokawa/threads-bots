@@ -3506,5 +3506,26 @@
     "replyText": "対応機種や耐荷重はこちらで見られるにゃ\n【PR】商品ページはこちら👇",
     "replyPending": false,
     "replyId": "17968700303981127"
+  },
+  {
+    "itemCode": "comfystore:10000036",
+    "genre": "充電・ケーブル",
+    "price": 2650,
+    "postedAt": "2026-11-25T01:14:59.963Z",
+    "textSource": "AI",
+    "hook": "5と0のつく日、寝る前にスマホのケーブル探してないにゃ？",
+    "hook_style": "問いかけ",
+    "template_type": "A",
+    "has_price": true,
+    "has_discount_rate": false,
+    "number_in_head": true,
+    "sale_name": "5と0のつく日",
+    "has_media": true,
+    "threadsId": "18081480017427700",
+    "permalink": "https://www.threads.com/@sale_desk_neko/post/DgJU7JkCWY9",
+    "url": "https://hb.afl.rakuten.co.jp/hgc/g00trcio.hjiao737.g00trcio.hjiaqd9f/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Fcomfystore%2Fco-charge-3%2F&m=http%3A%2F%2Fm.rakuten.co.jp%2Fcomfystore%2Fi%2F10000036%2F&rafcid=wsc_i_is_b3849184-7557-44c6-b39d-b125169c4106",
+    "replyText": "対応機種はこちらで見られるにゃ\n【PR】商品ページはこちら👇",
+    "replyPending": false,
+    "replyId": "17976934527186873"
   }
 ]
